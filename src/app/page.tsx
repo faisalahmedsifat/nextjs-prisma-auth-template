@@ -3,8 +3,11 @@ import { SignUp } from "@/components/sign-up";
 
 export default function Home() {
   return (
-    <div>
-      <SignUp />
-    </div>
+    <main>
+      <div className="flex flex-col justify-around">
+        <SignIn />
+        <SignUp />
+      </div>
+    </main>
   );
 }

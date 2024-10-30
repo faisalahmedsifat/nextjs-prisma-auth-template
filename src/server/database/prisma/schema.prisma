@@ -8,16 +8,23 @@ generator client {
 }
 
 model User {
-    id            String          @id @default(cuid())
-    name          String?
-    email         String          @unique
-    emailVerified DateTime?
-    password      String?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
+    id                         String                @id @default(cuid())
+    name                       String?
+    email                      String                @unique
+    emailVerified              DateTime?
+    password                   String?
+    role                       Role                  @default(PATIENT)
+    image                      String?
+    accounts                   Account[]
+    sessions                   Session[]
     // Optional for WebAuthn support
-    Authenticator Authenticator[]
+    Authenticator              Authenticator[]
+    // Relationships
+    appointmentsAsPatient      Appointment[]         @relation("PatientAppointments")
+    appointmentsAsDentist      Appointment[]         @relation("DentistAppointments")
+    appointmentsAsReceptionist Appointment[]         @relation("ReceptionistAppointments")
+    uploadedDocuments          Document[]
+    availability               DentistAvailability[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -76,4 +83,84 @@ model Authenticator {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@id([userId, credentialID])
+}
+
+enum Role {
+    PATIENT
+    RECEPTIONIST
+    DENTIST
+    ADMIN
+}
+
+model Appointment {
+    id                   String            @id @default(uuid())
+    patient              User              @relation("PatientAppointments", fields: [patientId], references: [id])
+    patientId            String
+    dentist              User              @relation("DentistAppointments", fields: [dentistId], references: [id])
+    dentistId            String
+    receptionist         User?             @relation("ReceptionistAppointments", fields: [receptionistId], references: [id])
+    receptionistId       String?
+    startTime            DateTime
+    endTime              DateTime
+    status               AppointmentStatus
+    transcriptionSummary String?
+    isSummaryLocked      Boolean           @default(false)
+    createdAt            DateTime          @default(now())
+    updatedAt            DateTime          @updatedAt
+
+    // Relationships
+    documents     Document[]
+    transcription Transcription?
+}
+
+enum AppointmentStatus {
+    SCHEDULED
+    ONGOING
+    COMPLETED
+}
+
+model Document {
+    id            String       @id @default(uuid())
+    patientId     String
+    appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+    appointmentId String?
+    documentUrl   String
+    type          String
+    uploadedById  String
+    createdAt     DateTime     @default(now())
+    updatedAt     DateTime     @updatedAt
+    User          User?        @relation(fields: [userId], references: [id])
+    userId        String?
+}
+
+model DentistAvailability {
+    id        String    @id @default(uuid())
+    dentist   User      @relation(fields: [dentistId], references: [id])
+    dentistId String
+    dayOfWeek DayOfWeek
+    startTime DateTime
+    endTime   DateTime
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+}
+
+enum DayOfWeek {
+    MONDAY
+    TUESDAY
+    WEDNESDAY
+    THURSDAY
+    FRIDAY
+    SATURDAY
+    SUNDAY
+}
+
+model Transcription {
+    id                String      @id @default(uuid())
+    appointment       Appointment @relation(fields: [appointmentId], references: [id])
+    appointmentId     String      @unique
+    transcriptionText String?
+    summary           String
+    isFinalized       Boolean     @default(false)
+    createdAt         DateTime    @default(now())
+    updatedAt         DateTime    @updatedAt
 }

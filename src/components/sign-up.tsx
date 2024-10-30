@@ -9,7 +9,6 @@ export function SignUp() {
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
         await SignupUseCase({ email, password });
-        // await signIn("credentials", formData);
       }}
     >
       <label>
@@ -20,7 +19,7 @@ export function SignUp() {
         Password
         <input name="password" type="password" />
       </label>
-      <button>Sign In</button>
+      <button>Sign Up</button>
     </form>
   );
 }

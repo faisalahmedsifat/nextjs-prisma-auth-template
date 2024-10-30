@@ -1,6 +1,6 @@
 "use server";
 
-import UserRepo from "@/server/database/repositories/user";
+import UserRepo, { Role } from "@/server/database/repositories/user";
 
 interface UserProps {
   email: string;
@@ -15,5 +15,5 @@ export default async function SignupUseCase({ email, password }: UserProps) {
 
   console.log("Creating user with email", email);
 
-  return UserRepo.createUser(email, password);
+  return UserRepo.createUser({ email, password, role: Role.PATIENT });
 }
