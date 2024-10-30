@@ -1,10 +1,10 @@
 import db from "@/server/database/db";
 
 export default class AppointmentRepo {
+  // Create a new appointment with required data only
   static createAppointment = async (
     patientId: string,
     dentistId: string,
-    receptionistId: string | null,
     startTime: Date,
     endTime: Date
   ) => {
@@ -12,7 +12,6 @@ export default class AppointmentRepo {
       data: {
         patientId,
         dentistId,
-        receptionistId,
         startTime,
         endTime,
         status: "SCHEDULED",
@@ -20,6 +19,7 @@ export default class AppointmentRepo {
     });
   };
 
+  // Update appointment status by appointment ID
   static updateAppointmentStatus = async (
     appointmentId: string,
     status: "SCHEDULED" | "ONGOING" | "COMPLETED"
@@ -30,6 +30,7 @@ export default class AppointmentRepo {
     });
   };
 
+  // Get all appointments for a specific user
   static getAppointmentsForUser = async (userId: string) => {
     return db.appointment.findMany({
       where: {
@@ -42,10 +43,24 @@ export default class AppointmentRepo {
     });
   };
 
+  // Get an appointment by its ID, including related documents and transcription
   static getAppointmentById = async (appointmentId: string) => {
     return db.appointment.findUnique({
       where: { id: appointmentId },
       include: { documents: true, transcription: true },
+    });
+  };
+
+  // Get all appointments (for Admin use)
+  static getAllAppointments = async () => {
+    return db.appointment.findMany({
+      include: {
+        patient: true, // Include patient details
+        dentist: true, // Include dentist details
+        receptionist: true, // Optionally include receptionist details, if available
+        documents: true, // Include related documents
+        transcription: true, // Include related transcription, if available
+      },
     });
   };
 }
